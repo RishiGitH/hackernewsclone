@@ -1,0 +1,52 @@
+
+<html op="news">
+<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+{% load static %}
+<head><meta name="referrer" content="origin"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" type="text/css" href="{% static 'newspost/newsbee7.css' %}">
+            <link rel="shortcut icon" href="{% static 'newspost/favicon.ico'%}">
+          <link rel="alternate" type="application/rss+xml" title="RSS" href="rss">
+        <title>Rishi News</title></head><body><center><table id="hnmain" border="0" cellpadding="0" cellspacing="0" width="85%" bgcolor="#f6f6ef">
+        <tr><td bgcolor="#ff6600"><table border="0" cellpadding="0" cellspacing="0" width="100%" style="padding:2px"><tr><td style="width:18px;padding-right:4px"><a href="index.html"><img src="{%static 'newspost/y18.gif'%}" width="18" height="18" style="border:1px white solid;"></a></td>
+                  <td style="line-height:12pt; height:10px;"><span class="pagetop"><b class="hnname"><a href="news.html">Rishi News</a></b>
+              <a href="newest.html">new</a> | <a href="front.html">past</a> | <a href="newcomments.html">comments</a> | <a href="ask.html">ask</a> | <a href="show.html">show</a> | <a href="jobs.html">jobs</a> | <a href="{% url 'newspost:addPost' %}">submit</a>            </span></td><td style="text-align:right;padding-right:4px;"><span class="pagetop">
+                {% if  username %}
+                              <a href="{% url 'newspost:index' %}">{{ username }}</a>
+                               <a href="{% url 'newspost:logout' %}">logout</a>
+                          </span></td>
+              </tr></table></td></tr>
+                {% else %}
+              <a href="{% url 'newspost:login1' %}">login</a>
+              <a href="{% url 'newspost:register1' %}">register</a>
+                          </span></td>
+              </tr></table></td></tr>
+              {% endif %}
+<tr id="pagespace" title="" style="height:10px"></tr><tr><td><table border="0" cellpadding="0" cellspacing="0" class="itemlist">
+    {% for post in posts %}
+              <tr class='athing' id='19725290'>
+      <td align="right" valign="top" class="title"><span class="rank">1.</span></td>      <td valign="top" class="votelinks"><center>
+        {% if post.post_is_upvoted %}
+
+        {$ else %}
+        <a id='up_19725290' href='https://news.ycombinator.com/vote?id=19725290&amp;how=up&amp;goto=news'><div class='votearrow' title='upvote'></div></a></center></td>
+        {% endif %}
+        <td class="title"><a href="https://{{ post.post_link }}" class="storylink">{{ post.post_title }} </a><span class="sitebit comhead"> (<a href="{{ post.post_link }}"><span class="sitestr">{{ post.post_link }}</span></a>)</span></td></tr><tr><td colspan="2"></td><td class="subtext">
+        <span class="score" id="score_19725290">{{ post.post_upvotes }}</span> by <a href="user7138.html?id=gcla" class="hnuser">{{ post.user_id.username }}</a> <span class="age"><a href="item472a.html?id=19725290">{{ post.timestamp }}</a></span> <span id="unv_19725290"></span> | <a href="hide2593.html?id=19725290&amp;goto=news">hide</a> | <a href="{% url 'newspost:post' post.id %}">{{post.commented_post.count}}&nbsp;comments</a>              </td></tr>
+      {% endfor %}
+      <tr class="spacer" style="height:5px"></tr>
+            <tr class="morespace" style="height:10px"></tr><tr><td colspan="2"></td><td class="title"><a href="news905b.html?p=2" class="morelink" rel="next">More</a></td></tr>
+  </table>
+</td></tr>
+<tr><td><img src="{% static 's.gif'%}" height="10" width="0"><table width="100%" cellspacing="0" cellpadding="1"><tr><td bgcolor="#ff6600"></td></tr></table><br><center><span class="yclinks"><a href="newsguidelines.html">Guidelines</a>
+        | <a href="newsfaq.html">FAQ</a>
+        | <a href="mailto:hn@ycombinator.com">Support</a>
+        | <a href="https://github.com/HackerNews/API">API</a>
+        | <a href="security.html">Security</a>
+        | <a href="lists.html">Lists</a>
+        | <a href="bookmarklet.html" rel="nofollow">Bookmarklet</a>
+        | <a href="http://www.ycombinator.com/legal/">Legal</a>
+        | <a href="http://www.ycombinator.com/apply/">Apply to YC</a>
+        | <a href="mailto:hn@ycombinator.com">Contact</a></span><br><br><form method="get" action="{% url 'newspost:search' %}">Search:
+          <input type="text" name="q" value="{{ request.GET.q }}"  size="17" autocorrect="off" spellcheck="false" autocapitalize="off" autocomplete="false"></form>
+            </center></td></tr>
+      </table></center></body><script type='text/javascript' src="{% static 'newspost/hnbee7.js'%}"></script>
+</html>

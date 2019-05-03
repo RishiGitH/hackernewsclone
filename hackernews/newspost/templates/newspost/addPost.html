@@ -1,0 +1,4 @@
+ <form method="post" action="{% url 'newspost:addPost' %}">
+          {% csrf_token %}
+          {{ form.as_p }}
+                <br><br><input type="submit" value="Submit"></form>
