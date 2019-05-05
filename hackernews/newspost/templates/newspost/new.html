@@ -1,0 +1,18 @@
+<ul>
+    {% for thing in things %}
+        {% for branch, obj in thing.as_tree %}
+            {% if obj %}
+                <li>{{ obj.name }}
+                {% if branch %}
+                    <ul>
+                {% else %}
+                    </li>
+                {% endif %}
+            {% else %}
+                {% if branch %}
+                    </ul>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+</ul>

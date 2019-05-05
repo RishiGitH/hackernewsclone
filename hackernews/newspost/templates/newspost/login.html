@@ -23,6 +23,11 @@
                         <form method="post" action="{% url 'newspost:login1' %}">
 
                             {% csrf_token %}
+                            {% if error %}
+                            <div class="form-group has-danger">
+                                    <div class="form-control-feedback">{{error}}</div>
+                                  </div>
+                            {% endif %}
                             {{ form|crispy }}
                             <div class="mx-auto text-center">
                                 <input type="submit" value="Login" class="btn btn-primary">
