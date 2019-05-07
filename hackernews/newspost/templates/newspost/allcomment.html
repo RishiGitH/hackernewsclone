@@ -1,0 +1,40 @@
+  {% extends "newspost/base.html" %}
+
+{% load static %}
+
+{% block content %}
+<tr id="pagespace" title="rishi news" style="height:10px"></tr><tr><td>
+  <table border="0" class='comment-tree'>
+        {% for comment in comments %}
+            {% for branch, obj in comment.as_tree %}
+                {% if obj %}
+                        <tr class='athing comtr ' id='19803117'><td>
+            <table border='0'>  <tr>    <td class='ind'><img src="{% static 's.gif'%}" height="1" width="{% widthratio 40 1 obj.level_count %}"></td><td valign="top" class="votelinks"><center>
+              {% if user.is_authenticated %}
+              <a id='up_19802558' href="{% url 'newspost:upvote_comment' obj.id %}" >
+              {% endif %}
+              <div class='votearrow' title='upvote'></div></a></center></td><td class="default"><div style="margin-top:2px; margin-bottom:-10px;"><span class="comhead">
+              <span class="score" id="score_19802558">{{ obj.comment_upvote.count }} points</span> by
+          <a href="https://news.ycombinator.com/user?id=darawk" class="hnuser">{{obj.user_id.username }}</a> <span class="age"><a href="https://news.ycombinator.com/item?id=19803117">{{ obj.timestamp }}</a></span> <span id="unv_19803117"></span><span class="par"></span> <a class="togg" n="8" href="javascript:void(0)" onclick="return toggle(event, 19803117)"></a>          <span class='storyon'></span>
+                  </span></div><br><div class="comment">
+                  <span class="commtext c00">{{ obj.text }}</span>
+              <div class='reply'>        <p><font size="1">
+                      <u><a href="{% url 'newspost:reply' obj.id %}">reply</a></u>
+                  </font>
+      </div></div></td></tr>
+      </table></td></tr>
+                    {% if branch %}
+                    {% else %}
+                    {% endif %}
+                {% else %}
+                    {% if branch %}
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+
+
+              </table>
+      <br><br>
+  </td></tr>
+{% endblock %}

@@ -1,4 +1,16 @@
+
+
+{% extends "newspost/base.html" %}
+{% block content %}
+
+<div>
+<br><br>
+<tr id="pagespace" title="rishi news" style="height:10px"></tr><tr><td>
  <form method="post" action="{% url 'newspost:reply' comments.id %}">
           {% csrf_token %}
           {{ form.as_p }}
                 <br><br><input type="submit" value="Submit"></form>
+</div>
+      <br><br>
+  </td></tr>
+{% endblock %}

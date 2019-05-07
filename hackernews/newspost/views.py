@@ -2,9 +2,9 @@ from django.shortcuts import render, HttpResponse, redirect,render
 from django.http import HttpResponse, HttpResponseNotFound, Http404,  HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth import authenticate,login,logout
-from .models import Post,Comment,RecursiveThing
+from .models import Post,Comment
 from django.urls import reverse
-from .forms import CommentForm,PostForm,UserCreationForm1,UserChangeForm1,UserForm
+from .forms import CommentForm,PostForm,UserCreationForm1
 from django.contrib.auth.forms import AuthenticationForm
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
@@ -14,9 +14,8 @@ from django.contrib.auth.models import User
 
 def index(request):
     posts = Post.objects.all().order_by('timestamp')
-    tt=RecursiveThing.objects.all().filter(parent=None)
-    context={'posts':posts,'things':tt}
-    return render(request, 'newspost/new.html',context)
+    context={'posts':posts}
+    return render(request, 'newspost/index.html',context)
 
 
 def search(request):
@@ -32,65 +31,99 @@ def search(request):
         context={'posts':posts}
         return render(request, 'newspost/index.html',context)
 
+
+
 def post(request,post_id):
-    p=Post.objects.get(id=post_id)
-    c=Comment.objects.all().filter(post_id=p).order_by('path')
+    post=Post.objects.get(id=post_id)
+    comments=Comment.objects.all().filter(post_id=post).filter(parent_comment=None)
     # c.filter(child_comment!=None)
 
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
+    if request.user.is_authenticated:
 
-        form = CommentForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            m=Comment(text=form.cleaned_data['text'],post_id=p,user_id=request.user)
-            m.save()
-            m.path=str(m.id)
-            print(str(m.id))
-            m.save()
-            return render(request,'newspost/post.html',{'form': form,'post':p,'comments':c})
+        if request.method == 'POST':
+            # create a form instance and populate it with data from the request:
 
-    # if a GET (or any other method) we'll create a blank form
+            form = CommentForm(request.POST)
+            # check whether it's valid:
+            if form.is_valid():
+                # process the data in form.cleaned_data as required
+                # redirect to a new URL:
+                comment=Comment(text=form.cleaned_data['text'],post_id=post,user_id=request.user)
+                comment.save()
+                comments=Comment.objects.all().filter(post_id=post).filter(parent_comment=None)
+                return render(request,'newspost/post.html',{'form': form,'post':post,'comments':comments})
+        # if a GET (or any other method) we'll create a blank form
+        else:
+            form = CommentForm()
     else:
         form = CommentForm()
-    return render(request,'newspost/post.html',{'form': form,'post':p,'comments':c})
+        if request.method=='POST':
+            return render(request,'newspost/post.html',{'error':'please log in','form': form,'post':post,'comments':comments})
+    return render(request,'newspost/post.html',{'form': form,'post':post,'comments':comments})
 
+
+@login_required
+def upvote_p(request):
+    post_id = None
+    if request.method == 'GET':
+        post_id = request.GET['post_id']
+
+    post=Post.objects.get(id=post_id)
+    post.post_upvote.add(request.user)
+    post.save()
+
+    data=post.post_upvote.count()
+    print(data)
+    return HttpResponse(data)
+
+@login_required
+def upvote_c(request):
+    comment_id = None
+    if request.method == 'GET':
+        comment_id = request.GET['comment_id']
+
+    comment=Comment.objects.get(id=comment_id)
+    comment.comment_upvote.add(request.user)
+
+    data=comment.comment_upvote.count()
+    print(data)
+    return HttpResponse(data)
+
+def allcomment(request ):
+
+    comments=Comment.objects.all()
+    return render(request,'newspost/allcomment.html',{'comments':comments})
 
 def upvote_comment(request,comment_id):
-    c=Comment.objects.get(id=comment_id)
-    c.comment_upvote.add(request.user)
-    p=c.post_id
-    return redirect('newspost:post',post_id=p.id)
+
+    comment=Comment.objects.get(id=comment_id)
+    comment.comment_upvote.add(request.user)
+    post=comment.post_id
+    return redirect('newspost:post',post_id=post.id)
 
 def upvote_post(request,post_id):
-    p=Post.objects.get(id=post_id)
-    p.post_upvote.add(request.user)
-    return redirect('newspost:post',post_id=p.id)
+
+    post=Post.objects.get(id=post_id)
+    post.post_upvote.add(request.user)
+    return redirect('newspost:post',post_id=post.id)
 
 @login_required(login_url='newspost:login1')
 def reply(request,comment_id):
-    c=Comment.objects.get(id=comment_id)
-    p=c.post_id
+    comment=Comment.objects.get(id=comment_id)
+    post=comment.post_id
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = CommentForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            m=Comment(text=form.cleaned_data['text'],post_id=p,user_id=request.user,level_count=c.level_count+1,parent_comment=c)
-            m.save()
-            m.path=c.path+'.'+str(m.id)
-            m.save()
-            c.save()
+            child_comment=Comment(text=form.cleaned_data['text'],post_id=post,user_id=request.user,level_count=comment.level_count+1,parent_comment=comment)
+            child_comment.save()
 
-            # d=Comment.objects.filter(post_id=p).order_by('path')
-        return redirect('newspost:post',post_id=p.id)
+        return redirect('newspost:post',post_id=post.id)
 
     else:
         form = CommentForm()
-    return render(request,'newspost/reply.html',{'form': form,'post':p,'comments':c})
+    return render(request,'newspost/reply.html',{'form': form,'post':post,'comments':comment})
 
 @login_required(login_url='newspost:login1')
 def addPost(request):
@@ -102,9 +135,9 @@ def addPost(request):
             # process the data in form.cleaned_data as required
             # ...
             # redirect to a new URL:
-            m=Post(post_title=form.cleaned_data['post_title'],post_link=form.cleaned_data['post_link'],user_id=request.user)
-            m.save()
-            return post(request,m.id)
+            post=Post(post_title=form.cleaned_data['post_title'],post_link=form.cleaned_data['post_link'],user_id=request.user)
+            post.save()
+            return post(request,post.id)
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -120,17 +153,8 @@ def register1(request):
         # check whether it's valid:
         if form.is_valid():
             form.save()
-            # process the data in form.cleaned_data as required
-            # ...
-            # redirect to a new URL:
-            # user = User1.objects.create(username=form.cleaned_data['username'], password=form.cleaned_data['password1'], email=form.cleaned_data['email'])
-            # user.save()
-            # request.session['username'] = user.username
-            print(form)
             username=form.cleaned_data['username']
             password=form.cleaned_data['password1']
-            # user.set_password(password)
-            # user.save()
             user=authenticate(username=username,password=password)
 
             if user is not None:
