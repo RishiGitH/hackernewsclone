@@ -3,15 +3,38 @@
 {% load static %}
 
 {% block content %}
-<tr id="pagespace" title="" style="height:10px"></tr><tr><td><table border="0" cellpadding="0" cellspacing="0" class="itemlist">
-    {% for post in posts %}
-              <tr class='athing' id='19725290'>
-      <td align="right" valign="top" class="title"><span class="rank">{{post.id}}.</span></td>      <td valign="top" class="votelinks"><center>
-        <td class="title"><a href="{{ post.post_link }}" class="storylink">{{ post.post_title }} </a><span class="sitebit comhead"> (<a href="{{ post.post_link }}"><span class="sitestr">{{ post.post_link }}</span></a>)</span></td></tr><tr><td colspan="2"></td><td class="subtext">
-        <span class="score" id="score_19725290">{{ post.post_upvote.count }}</span> by <a href="{% url 'newspost:index' %}" class="hnuser">{{ post.user_id.username }}</a> <span class="age"><a href="{% url 'newspost:index' %}">{{ post.timestamp }}</a></span> <span id="unv_19725290"></span> | <a href="{% url 'newspost:post' post.id %}">{{post.commented_post.count}}&nbsp;comments</a>              </td></tr>
-      {% endfor %}
-      <tr class="spacer" style="height:5px"></tr>
-            <tr class="morespace" style="height:10px"></tr><tr><td colspan="2"></td><td class="title"><a href="{% url 'newspost:index' %}" class="morelink" rel="next">More</a></td></tr>
-  </table>
+<tr id="pagespace" title="" style="height:10px"></tr><tr id='maintain'><td class='tableincrease'>
+  <div id='replace' class='this'>
+<table border="0" cellpadding="0" cellspacing="0" class="itemlist" id="items">
+  {% include 'newspost/posts.html' %}
+    </table>
+</div>
+<div id='replace1'>
+
+  </div>
+
+
+<div class="cdp" actpage="1">
+  <a href="#!-1"  class="cdp_i" >prev</a>
+  {% with  count=1 %}
+  {% for i in pages %}
+  <a href="#!{{ count|add:i }}" class="cdp_i" id='lazyLoadLink' data-page='{{i}}'>{{count|add:i }}</a>
+{% endfor %}
+  {% endwith %}
+  <a href="#!+1"  class="cdp_i">next</a>
+  }
+</div>
 </td></tr>
+
 {% endblock %}
+{% block javascript %}
+
+<script type="text/javascript">
+      // A CSRF token is required when making post requests in Django
+      // To be used for making AJAX requests in script.js
+      window.CSRF_TOKEN = "{{ csrf_token }}";
+
+    </script>
+    <script src="{% static 'js/script.js' %}"></script>
+{% endblock %}
+

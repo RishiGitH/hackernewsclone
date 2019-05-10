@@ -9,8 +9,8 @@
                 <td valign="top" class="votelinks">
                     <center>
                         {% if user.is_authenticated %}
-                        <button type="submit" id="upvotes"  data-catid="{{ post.id }}" value="{{ post.id }}">
-                          ^
+                        <button type="submit" id="upvotes" class="votearrow1"  data-catid="{{ post.id }}" value="{{ post.id }}">
+
                         </button>
                         {% endif %}
                     </center>
@@ -24,7 +24,8 @@
                 <td class="subtext">
                     <span class="score" id="upvote_count">{{ post.post_upvote.count }}</span><span> points</span> by <a href="{% url 'newspost:post' post.id %}" class="hnuser">{{ post.user_id.username }}</a> <span class="age"><a href="{% url 'newspost:post' post.id %}">{{ post.timestamp }}</a></span> <span id="unv_19802558"></span> | <a href="{% url 'newspost:post' post.id %}">{{post.commented_post.count }}&nbsp;comments</a>              </td></tr>
             <tr style="height:10px"></tr><tr><td colspan="2"></td><td>
-          <form method="post" action="{% url 'newspost:post' post.id %}"><input type="hidden" name="parent" value="19802558"><input type="hidden" name="goto" value="item?id=19802558"><input type="hidden" name="text" value="b80d306eba81c7eb284bac147320dbcbc929e451"><textarea name="text" rows="6" cols="60">{{ form.visible_fields.label_tag }}</textarea>
+          {% if user.is_authenticated %}
+          <form method="post" action="{% url 'newspost:post_comment' %}" class ="post_comment" data_id="{{ post.id }}"><input type="hidden" name="parent" value="19802558"><input type="hidden" name="goto" value="item?id=19802558"><input type="hidden" name="text" value="b80d306eba81c7eb284bac147320dbcbc929e451"><textarea name="text" rows="6" cols="60">{{ form1.visible_fields.label_tag }}</textarea>
           {% csrf_token %}
           <!-- {{ form.as_p }} -->
                 <br><br><input type="submit" value="Submit">
@@ -33,6 +34,15 @@
           <div class="form-control-feedback">{{error}}</div>
         </div>
   {% endif %}</form>
+        {% else %}
+        <form method="post" action="javascript:void(0)"  ><input type="hidden" name="parent" value="19802558"><input type="hidden" name="goto" value="item?id=19802558"><input type="hidden" name="text" value="b80d306eba81c7eb284bac147320dbcbc929e451"><textarea name="text" rows="6" cols="60">{{ form1.visible_fields.label_tag }}</textarea>
+          {% csrf_token %}
+          <!-- {{ form.as_p }} -->
+                <br><br><input type="submit" value="Submit">
+  <div class="form-group has-danger">
+          <div class="form-control-feedback">Please log in to submit</div>
+        </div></form>
+    {% endif %}
       </td></tr>
   </table><br><br>
 
@@ -40,20 +50,46 @@
         {% for comment in comments %}
             {% for branch, obj in comment.as_tree %}
                 {% if obj %}
-                        <tr class='athing comtr ' id='19803117'><td>
+                        <tr class='athing comtr ' id='table{{ obj.id }}'><td>
             <table border='0'>  <tr>    <td class='ind'><img src="{% static 'newspost/s.gif'%}" height="1" width="{% widthratio 40 1 obj.level_count %}"></td><td valign="top" class="votelinks"><center>
               {% if user.is_authenticated %}
               <button type="submit" id="upvote{{ obj.id }}" class='votearrow' data-catid="{{ obj.id }}" value="{{ obj.id }}"></button>
               {% endif %}</center></td><td class="default"><div style="margin-top:2px; margin-bottom:-10px;"><span class="comhead">
               <span class="score" id="comment-count{{ obj.id }}">{{ obj.comment_upvote.count }} points</span> by
-          <a href="{% url 'newspost:post' post.id %}" class=>{{obj.user_id.username }}</a> <span class="age"><a href="{% url 'newspost:post' post.id %}">{{ obj.timestamp }}</a></span> <span id="unv_19803117"></span><span class="par"></span> <a class="togg" n="8" href="javascript:void(0)" onclick="return toggle(event, 19803117)"></a>          <span class='storyon'></span>
+          <a href="{% url 'newspost:post' post.id %}" class=>{{obj.user_id.username }}</a> <span class="age"><a href="{% url 'newspost:post' post.id %}">{{ obj.timestamp }}</a></span> <span id="unv_19803117"></span><span class="par"></span> <a class="togg" n="8" href="" onclick="return toggle(event, 19803117)"></a>          <span class='storyon'></span>
                   </span></div><br><div class="comment">
                   <span class="commtext c00">{{ obj.text }}</span>
+                  {% if user.is_authenticated %}
               <div class='reply'>        <p><font size="1">
-                      <u><a href="{% url 'newspost:reply' obj.id %}">reply</a></u>
+                      <u><a href="" class='link' id="{{ obj.id}}">reply</a></u>
+                       <form method="POST" action ="{% url 'newspost:reply' %}" id='links{{obj.id}}' class='form_comment' data_commentid='{{ obj.id }}' style="display: none;" >
+          {% csrf_token %}
+          {{ form.as_p }}
+                <br><br><input type="submit" class ="submit1" id='{{ obj.id}}' value="Submit"></form>
                   </font>
-      </div></div></td></tr>
-      </table></td></tr>
+                  <div class="form-group has-danger">
+                                    <div class="form-control-feedback" id='error{{ obj.id}}'></div>
+                                  </div>
+      </div></div>
+      {% else %}
+              <div class='reply'>        <p><font size="1">
+                      <u><a href="javascript:void(0)" class='link' id="{{ obj.id}}">reply</a></u>
+                       <form method="POST" action ="javascript:void(0)" id='links{{obj.id}}'  data_commentid='{{ obj.id }}' style="display: none;" >
+          {% csrf_token %}
+          {{ form.as_p }}
+                <br><br><input type="submit" value="Submit"></form>
+                  </font>
+                  <div class="form-group has-danger">
+                                    <div class="form-control-feedback" id='error{{ obj.id}}'></div>
+                                  </div>
+      </div></div>
+      {% endif %}
+
+    </td></tr>
+
+      </table></td>
+
+    </tr>
                     {% if branch %}
                     {% else %}
                     {% endif %}
@@ -71,4 +107,7 @@
 {% endblock %}
 {% block javascript %}
 <script src="{% static 'js/newspost.js' %}"></script>
+
 {% endblock %}
+
+

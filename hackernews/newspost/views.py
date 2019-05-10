@@ -9,14 +9,49 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.template.loader import get_template ,render_to_string
+from django.template import Context
+from django.template import loader
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from datetime import datetime
+import json
+import math
+from django.http import JsonResponse
 
 
 
 def index(request):
     posts = Post.objects.all().order_by('timestamp')
-    context={'posts':posts}
+    count=len(posts)/10
+    count=math.ceil(count)
+    print(count)
+    posts=posts[:10]
+    context={'posts':posts,'pages':range(count)}
     return render(request, 'newspost/index.html',context)
 
+
+def lazy_load_posts(request):
+    page = request.POST.get('page')
+    posts = Post.objects.all()
+    results_per_page = 10
+    paginator = Paginator(posts, results_per_page)
+    try:
+        posts = paginator.page(page)
+    except PageNotAnInteger:
+        posts = paginator.page(2)
+    except EmptyPage:
+        posts = paginator.page(paginator.num_pages)
+    # build a html posts list with the paginated posts
+    posts_html = loader.render_to_string(
+        'newspost/posts.html',
+        {'posts': posts,'user':request.user}
+    )
+    # package output data and return it as a JSON object
+    output_data = {
+        'posts_html': posts_html,
+        'has_next': posts.has_next()
+    }
+    return JsonResponse(output_data)
 
 def search(request):
 
@@ -37,29 +72,9 @@ def post(request,post_id):
     post=Post.objects.get(id=post_id)
     comments=Comment.objects.all().filter(post_id=post).filter(parent_comment=None)
     # c.filter(child_comment!=None)
-
-    if request.user.is_authenticated:
-
-        if request.method == 'POST':
-            # create a form instance and populate it with data from the request:
-
-            form = CommentForm(request.POST)
-            # check whether it's valid:
-            if form.is_valid():
-                # process the data in form.cleaned_data as required
-                # redirect to a new URL:
-                comment=Comment(text=form.cleaned_data['text'],post_id=post,user_id=request.user)
-                comment.save()
-                comments=Comment.objects.all().filter(post_id=post).filter(parent_comment=None)
-                return render(request,'newspost/post.html',{'form': form,'post':post,'comments':comments})
-        # if a GET (or any other method) we'll create a blank form
-        else:
-            form = CommentForm()
-    else:
-        form = CommentForm()
-        if request.method=='POST':
-            return render(request,'newspost/post.html',{'error':'please log in','form': form,'post':post,'comments':comments})
-    return render(request,'newspost/post.html',{'form': form,'post':post,'comments':comments})
+    form = CommentForm()
+    form1=CommentForm()
+    return render(request,'newspost/post.html',{'form': form,'form1':form1,'post':post,'comments':comments})
 
 
 @login_required
@@ -89,41 +104,54 @@ def upvote_c(request):
     print(data)
     return HttpResponse(data)
 
-def allcomment(request ):
+def allcomment(request):
 
-    comments=Comment.objects.all()
+    comments=Comment.objects.all().order_by('-timestamp').filter(parent_comment=None)
     return render(request,'newspost/allcomment.html',{'comments':comments})
 
-def upvote_comment(request,comment_id):
-
-    comment=Comment.objects.get(id=comment_id)
-    comment.comment_upvote.add(request.user)
-    post=comment.post_id
-    return redirect('newspost:post',post_id=post.id)
-
-def upvote_post(request,post_id):
-
-    post=Post.objects.get(id=post_id)
-    post.post_upvote.add(request.user)
-    return redirect('newspost:post',post_id=post.id)
 
 @login_required(login_url='newspost:login1')
-def reply(request,comment_id):
-    comment=Comment.objects.get(id=comment_id)
-    post=comment.post_id
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = CommentForm(request.POST)
-        # check whether it's valid:
-        if form.is_valid():
-            child_comment=Comment(text=form.cleaned_data['text'],post_id=post,user_id=request.user,level_count=comment.level_count+1,parent_comment=comment)
-            child_comment.save()
+def reply(request):
+    if request.method == 'POST' and request.is_ajax() :
+        comment_text = request.POST.get('data1')
+        comment_id=request.POST.get('id')
+        comment=Comment.objects.get(id=comment_id)
+        post=comment.post_id
+        text=comment_text.split('text=')
 
-        return redirect('newspost:post',post_id=post.id)
-
+        child_comment=Comment(text=text[1],post_id=post,user_id=request.user,level_count=comment.level_count+1,parent_comment=comment)
+        child_comment.save()
+        form=CommentForm()
+        t = get_template('newspost/reply.html')
+        c = {'form':form,'obj': child_comment,'user':request.user}
+        rendered = t.render(c)
+        # reply_page = render_to_string('newspost/reply.html',{'form':form,'obj': child_comment})
+        # html = reply_page.render({'obj': child_comment})
+        return HttpResponse(json.dumps({'html':rendered,'child_id':child_comment.id}),content_type='application/json')
     else:
-        form = CommentForm()
-    return render(request,'newspost/reply.html',{'form': form,'post':post,'comments':comment})
+        return HttpResponse('error')
+
+
+@login_required(login_url='newspost:login1')
+def post_comment(request):
+    if request.method == 'POST' and request.is_ajax() :
+        post_text = request.POST.get('data1')
+        post_id=request.POST.get('id')
+        post=Post.objects.get(id=post_id)
+        print(post_text)
+        data_text=post_text.split('text=')
+        text=data_text[2].split('&')
+        print(text)
+
+        comment=Comment(text=text[0],post_id=post,user_id=request.user)
+        comment.save()
+        form=CommentForm()
+        t = get_template('newspost/reply.html')
+        c = {'form':form,'obj': comment,'user':request.user}
+        rendered = t.render(c)
+        return HttpResponse(json.dumps({'html':rendered,'comment_id':comment.id}),content_type='application/json')
+    else:
+        return HttpResponse('error')
 
 @login_required(login_url='newspost:login1')
 def addPost(request):
@@ -135,9 +163,9 @@ def addPost(request):
             # process the data in form.cleaned_data as required
             # ...
             # redirect to a new URL:
-            post=Post(post_title=form.cleaned_data['post_title'],post_link=form.cleaned_data['post_link'],user_id=request.user)
-            post.save()
-            return post(request,post.id)
+            post1=Post(post_title=form.cleaned_data['post_title'],post_link=form.cleaned_data['post_link'],user_id=request.user)
+            post1.save()
+            return post(request,post1.id)
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -182,9 +210,6 @@ def login1(request):
             return render(request,'newspost/login.html',{'error':'wrong username or password','form':form})
     form = AuthenticationForm()
     return render(request,'newspost/login.html',{'error':None,'form':form})
-
-
-
 
 
 

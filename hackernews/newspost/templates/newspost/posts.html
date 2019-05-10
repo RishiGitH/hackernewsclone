@@ -1,0 +1,17 @@
+{% for post in posts %}
+
+              <tr class='athing' id='19725290'>
+      <td align="right" valign="top" class="title"><span class="rank">{{post.id}}.</span></td>
+
+      <td valign="top" class="votelinks">
+                    <center>
+                        {% if user.is_authenticated %}
+                        <button type="submit"  id="upvotes{{post.id}}" class="votearrow1"  data-catid="{{ post.id }}" value="{{ post.id }}">
+
+                        </button>
+                        {% endif %}
+                    </center>
+                </td>
+        <td class="title"><a href="{{ post.post_link }}" class="storylink">{{ post.post_title }} </a><span class="sitebit comhead"> (<a href="{{ post.post_link }}"><span class="sitestr">{{ post.post_link }}</span></a>)</span></td></tr><tr><td colspan="2"></td><td class="subtext">
+        <span class="score" id="upvote_count{{post.id}}">{{ post.post_upvote.count }}</span> by <a href="{% url 'newspost:index' %}" class="hnuser">{{ post.user_id.username }}</a> <span class="age"><a href="{% url 'newspost:index' %}">{{ post.timestamp }}</a></span> <span id="unv_19725290"></span> | <a href="{% url 'newspost:post' post.id %}">{{post.commented_post.count}}&nbsp;comments</a>              </td></tr>
+      {% endfor %}

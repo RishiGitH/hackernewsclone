@@ -33,7 +33,7 @@ class Comment(models.Model):
         return self.text
 
     def as_tree(self):
-        reply = list(self.reply.all())
+        reply = self.reply.all()
         branch = bool(reply)
         yield branch, self
         for child in reply:

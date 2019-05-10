@@ -1,16 +1,43 @@
-
-
-{% extends "newspost/base.html" %}
-{% block content %}
-
-<div>
-<br><br>
-<tr id="pagespace" title="rishi news" style="height:10px"></tr><tr><td>
- <form method="post" action="{% url 'newspost:reply' comments.id %}">
+{% load static %}
+<td>
+            <table border='0'>  <tr>    <td class='ind'><img src="{% static 'newspost/s.gif'%}" height="1" width="{% widthratio 40 1 obj.level_count %}"></td><td valign="top" class="votelinks"><center>{% if user.is_authenticated %}
+          <button type="submit" id="upvote{{ obj.id }}" class='votearrow' data-catid="{{ obj.id }}" value="{{ obj.id }}"></button>
+              {% endif %}</center></td><td class="default"><div style="margin-top:2px; margin-bottom:-10px;"><span class="comhead">
+              <span class="score" id="comment-count{{ obj.id }}">{{ obj.comment_upvote.count }} points </span> by
+          <a href="" class=>{{obj.user_id.username }}</a> <span class="age"><a href="">{{ obj.timestamp }}</a></span> <span id="unv_19803117"></span><span class="par"></span> <a class="togg" n="8" href="" onclick="return toggle(event, 19803117)"></a>          <span class='storyon'></span>
+                  </span></div><br><div class="comment">
+                  <span class="commtext c00">{{ obj.text }}</span>
+                  {% if user.is_authenticated %}
+              <div class='reply'>        <p><font size="1">
+                      <u><a href="" class='link' id="{{ obj.id}}">reply</a></u>
+                       <form method="POST" action ="{% url 'newspost:reply' %}" id='links{{obj.id}}' class='form_comment' data_commentid='{{ obj.id }}' style="display: none;" >
+          {% csrf_token %}
+          {{ form.as_p }}
+                <br><br><input type="submit" class ="submit1" id='{{ obj.id}}' value="Submit"></form>
+                  </font>
+                  <div class="form-group has-danger">
+                                    <div class="form-control-feedback" id='error{{ obj.id}}'></div>
+                                  </div>
+      </div></div>
+      {% else %}
+              <div class='reply'>        <p><font size="1">
+                      <u><a href="javascript:void(0)" class='link' id="{{ obj.id}}">reply</a></u>
+                       <form method="POST" action ="javascript:void(0)" id='links{{obj.id}}'  data_commentid='{{ obj.id }}' style="display: none;" >
           {% csrf_token %}
           {{ form.as_p }}
                 <br><br><input type="submit" value="Submit"></form>
-</div>
-      <br><br>
-  </td></tr>
-{% endblock %}
+                  </font>
+                  <div class="form-group has-danger">
+                                    <div class="form-control-feedback" id='error{{ obj.id}}'></div>
+                                  </div>
+      </div></div>
+      {% endif %}
+              </td></tr>
+      </table></td>
+
+
+
+
+
+
+
