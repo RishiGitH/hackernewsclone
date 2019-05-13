@@ -1,4 +1,4 @@
-# hackernewsclone
+# Hackernewsclone
 A simple hackernews clone made in django
 
 
