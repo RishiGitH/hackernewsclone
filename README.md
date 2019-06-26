@@ -7,6 +7,6 @@ A simple hackernews clone made in django
 ## Post section with comments
 ![2](2.png?raw=true "Comment section ")
 ## Login
-![3](3.png?raw=true "Comment section ")
+![3](4.png?raw=true "Comment section ")
 ## Registration
 ![4](3.png?raw=true "Comment section ")
