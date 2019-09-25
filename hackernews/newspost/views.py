@@ -17,6 +17,7 @@ from datetime import datetime
 import json
 import math
 from django.http import JsonResponse
+import logging
 
 
 
@@ -27,6 +28,9 @@ def index(request):
     print(count)
     posts=posts[:10]
     context={'posts':posts,'pages':range(count)}
+    logger = logging.getLogger('my_json')
+
+    logger.info('Sign up')
     return render(request, 'newspost/index.html',context)
 
 
