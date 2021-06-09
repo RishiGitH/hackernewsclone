@@ -1,6 +1,6 @@
 bcrypt==3.1.6
 cffi==1.12.3
-Django==2.2.8
+Django==2.2.22
 django-crispy-forms==1.7.2
 pycparser==2.19
 pytz==2019.1
