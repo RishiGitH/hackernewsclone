@@ -5,4 +5,4 @@ django-crispy-forms==1.7.2
 pycparser==2.19
 pytz==2019.1
 six==1.12.0
-sqlparse==0.3.0
+sqlparse==0.4.4
